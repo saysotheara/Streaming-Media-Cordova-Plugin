@@ -130,6 +130,12 @@ public class SimpleVideoStream extends Activity implements
 		pause();
 	}
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		mVideoView.start();
+	}
+
 	private void wrapItUp(int resultCode, String message) {
 		Intent intent = new Intent();
 		intent.putExtra("message", message);

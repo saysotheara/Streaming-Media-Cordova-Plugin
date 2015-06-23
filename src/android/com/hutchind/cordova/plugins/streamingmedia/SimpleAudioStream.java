@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.MediaController;
 
@@ -27,6 +28,8 @@ public class SimpleAudioStream extends Activity implements
 	private MediaController mMediaController = null;
 	private LinearLayout mAudioView;
 	private View mMediaControllerView;
+	private ProgressBar mProgressBar = null;
+	private ImageView mBackgroundImage = null;
 	private String mAudioUrl;
 	private Boolean mShouldAutoClose = true;
 
@@ -61,24 +64,38 @@ public class SimpleAudioStream extends Activity implements
 		audioView.setBackgroundColor(bgColor);
 
 		if (backgroundImagePath != null) {
-			ImageView bgImage = new ImageView(this);
-			new ImageLoadTask(backgroundImagePath, bgImage, getApplicationContext()).execute(null, null);
+			mBackgroundImage = new ImageView(this);
+			new ImageLoadTask(backgroundImagePath, mBackgroundImage, getApplicationContext()).execute(null, null);
 			RelativeLayout.LayoutParams bgImageLayoutParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 			bgImageLayoutParam.addRule(RelativeLayout.CENTER_IN_PARENT);
-			bgImage.setLayoutParams(bgImageLayoutParam);
-			bgImage.setScaleType(bgImageScaleType);
-			audioView.addView(bgImage);
+			mBackgroundImage.setLayoutParams(bgImageLayoutParam);
+			mBackgroundImage.setScaleType(bgImageScaleType);
+			audioView.addView(mBackgroundImage);
 		}
 
 		RelativeLayout.LayoutParams relLayoutParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 		mMediaControllerView = new View(this);
 		audioView.addView(mMediaControllerView);
+
+		// Create progress throbber
+		mProgressBar = new ProgressBar(this);
+		mProgressBar.setIndeterminate(true);
+		// Center the progress bar
+		RelativeLayout.LayoutParams pblp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		pblp.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+		mProgressBar.setLayoutParams(pblp);
+		// Add progress throbber to view
+		audioView.addView(mProgressBar);
+		mProgressBar.bringToFront();
+
 		setContentView(audioView, relLayoutParam);
 
 		play();
 	}
 
 	private void play() {
+		mBackgroundImage.setVisibility(View.GONE);
+		mProgressBar.setVisibility(View.VISIBLE);
 		Uri myUri = Uri.parse(mAudioUrl);
 		try {
 			if (mMediaPlayer == null) {
@@ -112,6 +129,8 @@ public class SimpleAudioStream extends Activity implements
 		Log.d(TAG, "Stream is prepared");
 		mMediaController.setMediaPlayer(this);
 		mMediaController.setAnchorView(mMediaControllerView);
+		mBackgroundImage.setVisibility(View.VISIBLE);
+		mProgressBar.setVisibility(View.GONE);
 		mMediaPlayer.start();
 		mMediaController.setEnabled(true);
 		mMediaController.show();
@@ -128,7 +147,7 @@ public class SimpleAudioStream extends Activity implements
 	public void pause() {
 		if (mMediaPlayer!=null) {
 			try {
-//				mMediaPlayer.pause();
+				mMediaPlayer.pause();
 			} catch (Exception e) {
 				Log.d(TAG, e.toString());
 			}
@@ -212,7 +231,6 @@ public class SimpleAudioStream extends Activity implements
 		finish();
 	}
 
-
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		stop();
@@ -265,19 +283,13 @@ public class SimpleAudioStream extends Activity implements
 	@Override
 	protected void onStop() {
 		super.onStop();
-		mMediaController.hide();
-		try {
-			mMediaPlayer.stop();
-			mMediaPlayer.reset();
-			mMediaPlayer.release();
-		} catch(Exception e) {
-			Log.e(TAG, e.toString());
-		}
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		mMediaController.show();
+		if (isPlaying()) {
+			mMediaController.show();
+		}
 		return false;
 	}
 }

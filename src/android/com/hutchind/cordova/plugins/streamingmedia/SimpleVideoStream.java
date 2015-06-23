@@ -123,6 +123,12 @@ public class SimpleVideoStream extends Activity implements
 		super.onDestroy();
 		stop();
 	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		pause();
+	}
 
 	private void wrapItUp(int resultCode, String message) {
 		Intent intent = new Intent();

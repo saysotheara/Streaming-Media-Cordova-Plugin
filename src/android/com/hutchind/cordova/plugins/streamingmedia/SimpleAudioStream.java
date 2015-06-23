@@ -128,7 +128,7 @@ public class SimpleAudioStream extends Activity implements
 	public void pause() {
 		if (mMediaPlayer!=null) {
 			try {
-				mMediaPlayer.pause();
+//				mMediaPlayer.pause();
 			} catch (Exception e) {
 				Log.d(TAG, e.toString());
 			}
